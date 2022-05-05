@@ -1,0 +1,52 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",       // 编译
+            "type": "shell",
+            "command": "C:/mingw64/bin/mingw32-make",
+            "args": [
+                "-j4"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "编译(make)"
+        },
+        {
+            "label": "Clean",       // 清理
+            "type": "shell",
+            "command": "C:/mingw64/bin/mingw32-make",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "清理(make clean)"
+        },
+        {
+            "label": "Download",    // 下载
+            "type": "shell",
+            "command": [
+                "C:/openocd-v0.11.0-i686-w64-mingw32/bin/openocd.exe",
+                "-f C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/interface/stlink.cfg",// ST-LINK
+                "-f C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/target/stm32h7x.cfg", // 根据目标设备选择对应的配置
+                "-c 'reset_config none'",
+                "-c init",
+                "-c 'reset init'",
+                "-c halt",
+                "-c 'sleep 10'",
+                "-c 'flash write_image erase build/bin/${workspaceFolderBasename}.hex'",            // 下载固件
+                "-c 'sleep 10'",
+                "-c 'reset run'",
+                "-c 'sleep 10'",
+                "-c shutdown"
+            ],
+            "group": "build",
+            "detail": "烧写固件并运行(不编译,使用build/bin中的hex文件)"
+        }
+    ]
+}

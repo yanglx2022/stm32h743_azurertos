@@ -1,0 +1,8 @@
+# 忽略以下目录
+build/
+
+# 忽略以下文件
+.cortex-debug.*
+.DS_Store
+
+

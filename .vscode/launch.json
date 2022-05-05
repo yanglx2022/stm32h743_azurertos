@@ -1,0 +1,37 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+            "armToolchainPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/",
+            "servertype": "openocd",
+            "serverpath": "C:/openocd-v0.11.0-i686-w64-mingw32/bin/openocd.exe",
+            "configFiles": [
+                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/interface/stlink.cfg",
+                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/target/stm32h7x.cfg"
+            ],
+            "openOCDLaunchCommands": [
+                "reset_config none"                 // SWD可能未连接RST线, 使用软件复位
+            ],
+            "cwd": "${workspaceRoot}",
+            "executable": "build/debug/${workspaceFolderBasename}.elf", // 目标可执行文件
+            "runToEntryPoint": "main",
+            "svdFile": "drivers/STM32H743x.svd",    // SVD文件描述寄存器, 用于调试时查看CPU及外设寄存器
+            "swoConfig": {
+                "enabled": false,                   // 开启SWO功能需要硬件支持, 可代替串口打印调试信息(ST-LINK V2不支持, V2.1支持)
+                "cpuFrequency": 400000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    { "type": "console", "label": "ITM", "port": 0 }
+                ]
+            },
+            // "preLaunchTask": "Build"                // Debug前先编译
+        }
+    ]
+}

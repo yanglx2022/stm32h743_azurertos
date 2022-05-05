@@ -1,0 +1,34 @@
+{
+    "configurations": [
+        {
+            "name": "ARM-GCC",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/user/app",
+                "${workspaceFolder}/user/hardware",
+                "${workspaceFolder}/drivers/CMSIS/Include",
+                "${workspaceFolder}/drivers/CMSIS/Device/ST/STM32H7xx/Include",
+                "${workspaceFolder}/drivers/STM32H7xx_HAL_Driver/Inc",
+                "${workspaceFolder}/drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/drivers/threadx-6.1.11_rel/common/inc",
+                "${workspaceFolder}/drivers/threadx-6.1.11_rel/ports/cortex_m7/gnu/inc",
+                "${workspaceFolder}/drivers/threadx-6.1.11_rel/utility/execution_profile_kit",
+                "${workspaceFolder}/user/threadx"
+            ],
+            "defines": [
+                "__GNUC__",
+                "STM32H743xx",
+                "USE_FULL_LL_DRIVER",
+                "USE_HAL_DRIVER",
+                "TX_INCLUDE_USER_DEFINE_FILE",
+                "TX_EXECUTION_PROFILE_ENABLE",
+                "TX_CORTEX_M_EPK"
+            ],
+            "compilerPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "gnu99",
+            "cppStandard": "gnu++11",
+            "intelliSenseMode": "gcc-arm"
+        }
+    ],
+    "version": 4
+}
