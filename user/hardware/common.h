@@ -20,6 +20,7 @@ extern "C" {
 #include "stm32h7xx_ll_bus.h"
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_gpio.h"
+#include "stm32h7xx_ll_fmc.h"
 #include "stdio.h"
 #include "string.h"
 #include "memory.h"
@@ -106,7 +107,6 @@ __STATIC_INLINE void delay_ns(uint32_t num)
 }
 
 
-void Sys_Init(void);
 void delay_us(uint32_t num);
 void delay_ms(uint32_t num);
 uint32_t get_tick_ms(void);

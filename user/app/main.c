@@ -11,12 +11,12 @@
 // 版本号使用后三个字节
 const uint32_t VERSION = 0x000001;    // 版本号V0.0.1
 
+uint8_t axi_data[1024] __attribute__ ((section (".noinit.AXI_RAM")));
+uint8_t sd_data[1024] __attribute__ ((section (".init.SDRAM"))) = {1};
 
 int main(void)
 {
-    Sys_Init();
-
-    printf("hello world\n");
+    printf("hello world %d %d\n", axi_data[0], sd_data[0]);
 
     tx_kernel_enter();
     while(1);

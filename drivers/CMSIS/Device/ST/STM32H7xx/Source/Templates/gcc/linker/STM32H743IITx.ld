@@ -49,6 +49,7 @@ RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 288K
 RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K
 ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
 FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K
+SDRAM (rw)      : ORIGIN = 0xC0000000, LENGTH = 32M
 }
 
 /* Define output sections */
@@ -126,12 +127,14 @@ SECTIONS
     _sdata = .;        /* create a global symbol at data start */
     *(.data)           /* .data sections */
     *(.data*)          /* .data* sections */
+    
+    . = ALIGN(4);
+    *(.RAM_FUNC)       /* RAM中运行的函数放置到此段 */
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
   } >DTCMRAM AT> FLASH
 
-  
   /* Uninitialized data section */
   . = ALIGN(4);
   .bss :
@@ -159,7 +162,47 @@ SECTIONS
     . = ALIGN(8);
   } >DTCMRAM
 
-  
+  /* 有初值的AXI_RAM段(data) */
+  .init.AXI_RAM :
+  {
+    . = ALIGN(4);
+    _init_axi_ram_start = .;      /* 段起始地址, 4字节对齐, 从FLASH拷贝初值时使用 */
+    *(.init.AXI_RAM)
+    . = ALIGN(4);
+    _init_axi_ram_end = .;        /* 段结束地址, 4字节对齐, 从FLASH拷贝初值时使用 */
+  } > RAM_D1 AT> FLASH
+  _init_axi_ram_lma = LOADADDR(.init.AXI_RAM);  /* 段在FLASH中的地址, 从FLASH拷贝初值时使用 */
+
+  /* 无初值的AXI_RAM段(bss) */
+  .noinit.AXI_RAM :
+  {
+    . = ALIGN(4);
+    _noinit_axi_ram_start = .;    /* 段起始地址, 4字节对齐, 赋0初值时使用 */
+    *(.noinit.AXI_RAM)
+    . = ALIGN(4);
+    _noinit_axi_ram_end = .;      /* 段结束地址, 4字节对齐, 赋0初值时使用 */
+  } > RAM_D1
+
+  /* 有初值的SDRAM段(data) */
+  .init.SDRAM :
+  {
+    . = ALIGN(4);
+    _init_sdram_start = .;        /* 段起始地址, 4字节对齐, 从FLASH拷贝初值时使用 */
+    *(.init.SDRAM)
+    . = ALIGN(4);
+    _init_sdram_end = .;          /* 段结束地址, 4字节对齐, 从FLASH拷贝初值时使用 */
+  } > SDRAM AT> FLASH
+  _init_sdram_lma = LOADADDR(.init.SDRAM);  /* 段在FLASH中的地址, 从FLASH拷贝初值时使用 */
+
+  /* 无初值的SDRAM段(bss) */
+  .noinit.SDRAM :
+  {
+    . = ALIGN(4);
+    _noinit_sdram_start = .;    /* 段起始地址, 4字节对齐, 赋0初值时使用 */
+    *(.noinit.SDRAM)
+    . = ALIGN(4);
+    _noinit_sdram_end = .;      /* 段结束地址, 4字节对齐, 赋0初值时使用 */
+  } > SDRAM
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
