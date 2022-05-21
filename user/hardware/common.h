@@ -25,6 +25,7 @@ extern "C" {
 #include "string.h"
 #include "memory.h"
 #include "tx_api.h"
+#include "fx_api.h"
 
 
 // 版本号
@@ -42,9 +43,11 @@ extern const uint32_t VERSION;
 
 // 中断优先级分配
 // 注意: SysTick优先级4(tx_initialize_low_level.S中设置)
+#define SDCARD_PRI                      5
 
 // 任务优先级分配
-#define IDLE_TASK_PRI                   31
+#define FILE_THREAD_PRI                 11
+#define IDLE_THREAD_PRI                 31
 
 // 硬件驱动返回值
 typedef enum

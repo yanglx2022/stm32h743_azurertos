@@ -44,6 +44,16 @@ C_INCLUDES +=  \
 -Idrivers/threadx-6.1.11_rel/utility/execution_profile_kit \
 -Iuser/threadx \
 
+# FileX
+C_SOURCES +=  \
+$(wildcard drivers/filex-6.1.11_rel/common/src/*.c) \
+$(wildcard user/filex/*.c)
+
+C_INCLUDES +=  \
+-Idrivers/filex-6.1.11_rel/common/inc \
+-Idrivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc \
+-Iuser/filex \
+
 # ASM源文件
 ASM_SOURCES =  \
 drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h743xx.s
@@ -62,6 +72,7 @@ C_DEFS =  \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DTX_EXECUTION_PROFILE_ENABLE \
 -DTX_CORTEX_M_EPK \
+-DFX_INCLUDE_USER_DEFINE_FILE \
 
 # 汇编全局宏定义
 AS_DEFS = \

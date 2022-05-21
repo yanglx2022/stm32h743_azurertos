@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "sdram.h": "c"
+        "sdram.h": "c",
+        "common.h": "c",
+        "fx_sdcard_driver.h": "c"
     }
 }

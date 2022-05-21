@@ -13,7 +13,9 @@
                 "${workspaceFolder}/drivers/threadx-6.1.11_rel/common/inc",
                 "${workspaceFolder}/drivers/threadx-6.1.11_rel/ports/cortex_m7/gnu/inc",
                 "${workspaceFolder}/drivers/threadx-6.1.11_rel/utility/execution_profile_kit",
-                "${workspaceFolder}/user/threadx"
+                "${workspaceFolder}/user/threadx",
+                "${workspaceFolder}/drivers/filex-6.1.11_rel/common/inc",
+                "${workspaceFolder}/drivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc"
             ],
             "defines": [
                 "__GNUC__",
