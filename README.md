@@ -519,6 +519,10 @@ FileX多语言支持使用双字节Unicode编码（UTF-16的双字节部分）�
 3个字节|1110_xxxx 10xx_xxxx 10xx_xxxx|16|800~FFFF (2^16-1)
 4个字节|1111_0xxx 10xx_xxxx 10xx_xxxx 10xx_xxxx|21|10000~1FFFFF (2^21-1)
 
-由上表可得UTF-16转UTF-8算法：根据字符UTF-16值的范围确定UTF-8编码字节数，再根据相应编码格式完成转换。详细算法见文件`user/app/thread_file.c`中的`utf16_to_utf8`函数
+由上表可得UTF-16转UTF-8算法：根据字符UTF-16值的范围确定UTF-8编码字节数，再根据相应编码格式完成转换。详细算法见文件`user/app/thread_file.c`中的`utf16_to_utf8`函数。
+
+> 以`"中"`字为例说明一下字节序的问题。
+> 
+> 在[查看字符编码(UTF-8)](http://www.mytju.com/classcode/tools/encode_utf8.asp)网站可以查到`"中"`的Unicode值为`4E2D`，UTF-8编码为`E4B8AD`。其中`4E2D`为一个16位数值，低字节为`2D`高字节为`4E`，实际在UTF-16字符串中`2D`在前`4E`在后（小端）。而`E4B8AD`不是一个数值而是三个字节的序列，UTF-8字符串中`E4`在最前。UTF-16转UTF-8时，从UTF-16的低字节低位开始填充UTF-8的最后一个字节(10xx_xxxx)，最后UTF-16高字节的剩余部分填充UTF-8的第一个字节(1110_xxxx)。
 
 UTF-16转GBK的话没有固定的规律，需要一张包含每个字符的Unicode到GBK映射的转换表。转GB2312等其他中文编码也是一样的原理。
