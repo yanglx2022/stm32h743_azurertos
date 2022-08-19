@@ -8,6 +8,8 @@ STM32H743与AzureRTOS学习记录总结……
 
 [2022/05/08] 配置AXIRAM、SDRAM的data与bss段，并实现初始化
 
+[2022/08/19] SD卡驱动，FileX文件系统移植(中文支持)
+
 ## 硬件平台
 正点原子STM32H743核心板+自制底板，具体硬件资源如下表
 <table>
@@ -163,7 +165,7 @@ STM32H743与AzureRTOS学习记录总结……
     * hardware---------------------------外设驱动
 * Makefile
 
-## [STM32CubeH7库](https://github.com/STMicroelectronics/STM32CubeH7)
+## STM32CubeH7库
 主要使用LL库，无独立LL库时使用HAL库（SD、LTDC、NAND），未使用STM32CubeMX的代码框架
 
 移植关键步骤
@@ -178,7 +180,7 @@ STM32H743与AzureRTOS学习记录总结……
     * `STM32H743xx`
 * 注意Makefile中使用通配添加所有HAL及LL库源码时需要排除`_template.c`后缀的文件
 
-## [ThreadX](https://github.com/azure-rtos/threadx)
+## ThreadX
 移植关键步骤（包括任务统计分析组件execution_profile, 用于统计CPU占用率）
 * 添加源码（[ThreadX](https://github.com/azure-rtos/threadx/releases)）
     * `common_modules`、`common_smp`、`ports_module`、`ports_smp`不需要
@@ -438,4 +440,85 @@ __attribute__((constructor)) void sys_init(void)
 }
 ```
 
+## FileX文件系统
+### 移植关键步骤
+* 添加源码（[FileX](https://github.com/azure-rtos/filex/releases)）
+    * `ports`只需要`cortex_m7/gnu`
+    * 其他所有
+* 拷贝`common/inc/fx_user_sample.h`重命名至`user/filex/fx_user.h`，在此文件中对FileX进行配置
+* Makefile中需要添加的宏定义
+    * `FX_INCLUDE_USER_DEFINE_FILE`：使能`fx_user.h`配置文件
+* 底层驱动
+    * 读写扇区等操作，详见`user/filex/fx_sdcard_driver.c`
 
+### 中文支持
+FileX多语言支持使用双字节Unicode编码（UTF-16的双字节部分），下面对字符集与字符编码进行简单介绍
+
+> 给每一个字符编一个编号（code point），这些字符的集合构成`字符集`（Charset）。对于一个字符，在计算机中实际存储的值为`字符编码`（Encoding）。字符编码可能直接等于字符集中字符的编号，也可能是与字符编号有一个映射关系，这与具体的字符集相关。例如GB2312即是字符集也是其字符编码，而UTF-8则是[Unicode](https://unicode-table.com/cn/)字符集的一种字符编码。
+
+<table>
+    <tr>
+        <th>字符集</th>
+        <th>字符编码</th>
+        <th>字符宽度</th>
+        <th>说明</th>
+    </tr>
+    <tr>
+        <td rowspan="1">ASCII</td>
+        <td>ASCII</td>
+        <td>1字节</td>
+        <td>128个字符</td>
+    </tr>
+    <tr>
+        <td rowspan="3">Unicode</td>
+        <td>UTF-8</td>
+        <td>1~4字节</td>
+        <td>互联网应用最广泛，可容纳200多万个字符</td>
+    </tr>
+    <tr>
+        <td>UTF-16</td>
+        <td>2/4字节</td>
+        <td>Unicode第一平面使用2个字节，其他4个字节</td>
+    </tr>
+    <tr>
+        <td>UTF-32</td>
+        <td>4字节</td>
+        <td>对Unicode字符直接编码</td>
+    </tr>
+    <tr>
+        <td rowspan="1">GB2312</td>
+        <td>GB2312</td>
+        <td>2字节</td>
+        <td>第一个汉字编码国标，收录汉字6763个</td>
+    </tr>
+    <tr>
+        <td rowspan="1">GBK</td>
+        <td>GBK</td>
+        <td>2字节</td>
+        <td>兼容GB2312并进行扩展</td>
+    </tr>
+    <tr>
+        <td rowspan="1">GB18030</td>
+        <td>GB18030</td>
+        <td>1/2/4字节</td>
+        <td>兼容GB2312与GBK并进行扩展</td>
+    </tr>
+</table>
+
+中文文本显示时多采用UTF-8或GBK等编码，因此需要进行UTF-16到相应编码的转换。本项目使用UTF-8编码，下面介绍UTF-8的编码规则。
+> 对于单字节编码的字符，字节最高位为0，其他7位为Unicode码
+>
+> 对于N字节编码的字符，第一个字节前N位都为1，第N+1位为0，后面的字节最高两位均为10，所有字节剩余的位拼到一起为Unicode码
+
+1~4字节编码汇总如下表所示
+
+字节数|编码格式|有效位数|Unicode范围
+-|:-|:-:|:-
+1个字节|0xxx_xxxx|7|00~7F (2^7-1)
+2个字节|110x_xxxx 10xx_xxxx|11|80~7FF (2^11-1)
+3个字节|1110_xxxx 10xx_xxxx 10xx_xxxx|16|800~FFFF (2^16-1)
+4个字节|1111_0xxx 10xx_xxxx 10xx_xxxx 10xx_xxxx|21|10000~1FFFFF (2^21-1)
+
+由上表可得UTF-16转UTF-8算法：根据字符UTF-16值的范围确定UTF-8编码字节数，再根据相应编码格式完成转换。详细算法见文件`user/app/thread_file.c`中的`utf16_to_utf8`函数
+
+UTF-16转GBK的话没有固定的规律，需要一张包含每个字符的Unicode到GBK映射的转换表。转GB2312等其他中文编码也是一样的原理。

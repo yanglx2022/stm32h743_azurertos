@@ -19,7 +19,14 @@ static FX_MEDIA media;
 static uint8_t media_memory[64 * 1024] __attribute__((section(".noinit.AXI_RAM"), aligned(4)));
 __IO static uint8_t fs_mounted = 0;
 
-// UTF16转UTF8
+
+/**
+ * @brief : UTF-16转UTF-8(只处理2个字节UTF-16的情况)
+ * @param  *utf16    UTF-16字符串
+ * @param  utf16_len UTF-16字符串长度
+ * @param  *utf8     输出UTF-8字符串
+ * @return 
+ */
 static void utf16_to_utf8(const uint16_t *utf16, uint32_t utf16_len, char *utf8)
 {
     int index = 0;
