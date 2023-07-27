@@ -3,7 +3,7 @@
         {
             "name": "ARM-GCC",
             "includePath": [
-                "${workspaceFolder}/**",
+                "C:/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include",
                 "${workspaceFolder}/user/app",
                 "${workspaceFolder}/user/hardware",
                 "${workspaceFolder}/drivers/CMSIS/Include",

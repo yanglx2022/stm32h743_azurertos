@@ -2,6 +2,10 @@
     "files.associations": {
         "sdram.h": "c",
         "common.h": "c",
-        "fx_sdcard_driver.h": "c"
+        "fx_sdcard_driver.h": "c",
+        "stm32h7xx_ll_rcc.h": "c",
+        "stm32h7xx.h": "c",
+        "stdio.h": "c",
+        "thread_file.h": "c"
     }
 }

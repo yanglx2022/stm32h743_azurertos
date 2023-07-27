@@ -12,7 +12,7 @@
             "servertype": "openocd",
             "serverpath": "C:/openocd-v0.11.0-i686-w64-mingw32/bin/openocd.exe",
             "configFiles": [
-                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/interface/stlink.cfg",
+                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/interface/cmsis-dap.cfg",
                 "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/target/stm32h7x.cfg"
             ],
             "openOCDLaunchCommands": [

@@ -10,6 +10,7 @@
 #include "tx_thread.h"
 #include "tx_initialize.h"
 #include "sdcard.h"
+#include "nandflash.h"
 
 static void MPU_Cache_Config(void);
 static void SystemClock_Config(void);
@@ -45,6 +46,8 @@ __attribute__((constructor)) void sys_init(void)
     memory_init();
     // SD卡初始化
     SDCard_Init();
+    // NAND Flash初始化
+    NAND_Init();
 }
 
 /**
