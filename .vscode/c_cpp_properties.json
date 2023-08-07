@@ -15,7 +15,10 @@
                 "${workspaceFolder}/drivers/threadx-6.1.11_rel/utility/execution_profile_kit",
                 "${workspaceFolder}/user/threadx",
                 "${workspaceFolder}/drivers/filex-6.1.11_rel/common/inc",
-                "${workspaceFolder}/drivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc"
+                "${workspaceFolder}/drivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc",
+                "${workspaceFolder}/user/filex",
+                "${workspaceFolder}/drivers/levelx-6.1.11_rel/common/inc",
+                "${workspaceFolder}/user/levelx"
             ],
             "defines": [
                 "__GNUC__",
@@ -24,7 +27,9 @@
                 "USE_HAL_DRIVER",
                 "TX_INCLUDE_USER_DEFINE_FILE",
                 "TX_EXECUTION_PROFILE_ENABLE",
-                "TX_CORTEX_M_EPK"
+                "TX_CORTEX_M_EPK",
+                "FX_INCLUDE_USER_DEFINE_FILE",
+                "LX_INCLUDE_USER_DEFINE_FILE"
             ],
             "compilerPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe",
             "cStandard": "gnu99",

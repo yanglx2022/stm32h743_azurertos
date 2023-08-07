@@ -13,6 +13,10 @@ extern "C" {
 
 #include "common.h"
 
+#define FS_MEDIA_NUM                    (2)
+#define FS_NANDFLASH                    (0)
+#define FS_SDCARD                       (1)
+
 
 void file_thread_create(void);
 

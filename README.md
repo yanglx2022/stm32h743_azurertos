@@ -12,6 +12,8 @@ STM32H743与AzureRTOS学习记录总结……
 
 [2023/07/27] NandFlash驱动
 
+[2023/08/07] ECC介绍、LevelX移植、FileX增加NandFlash
+
 ## 硬件平台
 正点原子STM32H743核心板+自制底板，具体硬件资源如下表
 <table>
@@ -309,13 +311,13 @@ uint8_t axi_data[1024] __attribute__ ((section (".noinit.AXI_RAM")));
 ```
 MEMORY
 {
-DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
-RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 512K
-RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 288K
-RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 64K
-ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
-FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 2048K
-SDRAM (rw)      : ORIGIN = 0xC0000000, LENGTH = 32M
+DTCMRAM (xrw)   : ORIGIN = 0x20000000, LENGTH = 128K
+RAM_D1  (xrw)   : ORIGIN = 0x24000000, LENGTH = 512K
+RAM_D2  (xrw)   : ORIGIN = 0x30000000, LENGTH = 288K
+RAM_D3  (xrw)   : ORIGIN = 0x38000000, LENGTH = 64K
+ITCMRAM (xrw)   : ORIGIN = 0x00000000, LENGTH = 64K
+FLASH   (rx)    : ORIGIN = 0x08000000, LENGTH = 2048K
+SDRAM   (rw)    : ORIGIN = 0xC0000000, LENGTH = 32M
 }
 ```
 然后添加有初值与无初值两个段
@@ -451,7 +453,7 @@ __attribute__((constructor)) void sys_init(void)
 * Makefile中需要添加的宏定义
     * `FX_INCLUDE_USER_DEFINE_FILE`：使能`fx_user.h`配置文件
 * 底层驱动
-    * 读写扇区等操作，详见`user/filex/fx_sdcard_driver.c`
+    * 读写扇区等操作，详见`user/filex/fx_sdcard_driver.c`等
 
 ### 中文支持
 FileX多语言支持使用双字节Unicode编码（UTF-16的双字节部分），下面对字符集与字符编码进行简单介绍
@@ -622,7 +624,7 @@ FMC中时序相关的参数有6个，包括下图中的4个（MEMSET、MEMWAIT�
 
 上述时序看起来复杂但实现却很简单，可主要分为写命令字和读状态值两个部分，写命令只需将命令字写入FMC命令区域任意地址即可，读状态结果则是读取FMC数据区域任意地址即可，具体的命令与数据时序由FMC根据初始化时的配置自动完成。
 
-注意时序中发完命令至读取状态结果有一个tWHR的时间，这个时间FMC的配置中并没有，但手册中有最小60ns的要求。观察时序图可以看出tWHR=tCLH+tCLR，FMC中tCLH与tCLR配置均为15ns，则tWHR=30ns<60ns并不满足时序要求，需要在写命令与读状态之间增加额外至少30ns的延时。但实测发现不增加此延时也能正常读到状态值，使用示波器测量此时实际的tWHR值为51.2ns（下图是测量结果，使用的正点原子DS100示波器，由于带宽不足波形已经严重失真，这个时间只能大致参考）。这里实际与手册的差异暂没搞清楚怎么回事，保险起见代码里直接在写指令与读数据之间增加60ns的延时。
+注意时序中发完命令至读取状态结果有一个tWHR的时间，这个时间FMC的配置中并没有，但手册中有最小60ns的要求。观察时序图可以看出tWHR=tCLH+tCLR，FMC中tCLH与tCLR配置均为15ns，则tWHR=30ns<60ns并不满足时序要求，需要在写命令与读状态之间增加额外至少30ns的延时。但实测发现不增加此延时也能正常读到状态值，使用示波器测量此时实际的tWHR值为51.2ns（下图是测量结果，使用的正点原子DS100示波器，由于带宽不足波形已经严重失真，这个时间只能大致参考，图中黄色为RE#、绿色为WE#）。这里实际与手册的差异暂没搞清楚怎么回事，保险起见代码里直接在写指令与读数据之间增加60ns的延时。
 
 ![黄色为RE# 绿色为WE#](docs/twhr.png)
 
@@ -630,6 +632,8 @@ FMC中时序相关的参数有6个，包括下图中的4个（MEMSET、MEMWAIT�
 * 写入命令0x70
 * 延时tWHR
 * 读状态值
+
+> 注意进入读状态模式后，除非有新的指令，否则将一直处于该模式。因此在读页操作中，读取状态后需要发送一个0x00指令再开始读取页数据。
 
 ### 复位
 
@@ -654,13 +658,12 @@ FMC中时序相关的参数有6个，包括下图中的4个（MEMSET、MEMWAIT�
 * 读数据
 
 > 关于循环读ready状态的超时时间：
-按照时序busy状态持续时间为tR-tWB，可近似为tR（tWB与tR相比很小），手册中tR最大值为25us，因此理论上超时时间设置为25us即可，但实际25us总是发生超时，示波器测量RB#电平时间发现大于25us，如下图所示，因此超时时间要设置长一些，代码中设置的为50us
+按照时序busy状态持续时间为tR-tWB，可近似为tR（tWB与tR相比很小），手册中tR最大值为25us，因此理论上超时时间设置为25us即可，但实际25us总是发生超时，示波器测量RB#电平时间发现大于25us，如下图所示（绿色为RB#信号），因此超时时间要设置长一些，代码中设置的为50us
 ![绿色为RB#信号](docs/tr-twb.png)
 
 > 关于写入命令0x00后的延时
-读数据之前的时序有tRR与tCLR。由于ready状态（RB#升沿）之后有一个写0x00命令的操作，因此tRR（Min=20ns）必然满足。而tCLR是由FMC自动控制的，因此理论上写入命令0x00之后代码无需延时即可读取数据。但实际测试发现无延时会取数失败，因此怀疑tCLR时间过短，用示波器测量结果如下，87.5-72.6=15ns与配置值一致，满足要求。由于示波器只有两路，因此CLE与RE#分两次测量，图中黄色为便于测试控制GPIO输出的基准信号，左图绿色为CLE信号，右图绿色为CE#信号，两个信号的时间差即为tCLR。
+读数据之前的时然序有tRR与tCLR。由于ready状态（RB#升沿）之后有一个写0x00命令的操作，因此tRR（Min=20ns）必满足。而tCLR是由FMC自动控制的，因此理论上写入命令0x00之后代码无需延时即可读取数据。用示波器测量tCLR结果如下，87.5-72.6=15ns与配置值一致，满足要求。由于示波器只有两路，因此CLE与RE#分两次测量，图中黄色为便于测试控制GPIO输出的基准信号，左图绿色为CLE信号，右图绿色为CE#信号，两个信号的时间差即为tCLR。
 ![tCLR](docs/tclr.png)
-再次无延时实测又能正常读取数据了，难道是之前看错了？？？
 
 ### 写页
 
@@ -685,6 +688,64 @@ FMC中时序相关的参数有6个，包括下图中的4个（MEMSET、MEMWAIT�
 * 写入命令0xD0
 * 延时tWB
 * 循环读ready状态（tBERS超时）
+
+> 本文未介绍的如copy-back、CE don't-care、多plane并行等一些高级特性可参考[此文](https://www.cnblogs.com/yuanqiangfei/p/9400435.html)。
+
+### ECC校验
+
+**ECC简介**
+
+与NorFlash相比，NandFlash具有成本低容量大的优点，但同时也具有数据读写更容易出错的缺点，所以一般都需要ECC数据校验措施，每页最后的spare area区域用途之一就是存放ECC校验值。
+
+ECC（Error Code Correction或者Error Checking and Correcting）是一种差错检测和修正算法，可以检测特定长度（2的整次幂）数据中2个bit以内的错误和修正1个bit的错误。
+
+**ECC校验值生成原理**
+
+将数据按位排列（假设共Nbit），以不同的步长（1bit、2bit、4bit、8bit、16bit、…、N/2bit）交替将数据等分为两个部分，将每个部分所有位进行异或即得到ECC结果中的一位。由此可知ECC校验值位数为数据二等分方式数的2倍，即ECC有效位数=2log2(数据总位数），例如256字节数据的有效ECC位数为2log2(256*8)=22bit。下图展示了2字节数据的ECC计算原理。
+
+![ECC校验](docs/ecc.png)
+
+实现上述算法时一般会将数据按照一个字节或者两个字节一行排列成一个表，然后分别计算行校验与列校验，最后将行列校验组合起来形成ECC校验值（上面的ECC原理介绍相当于只有一行的表）。这样做的好处是方便加快计算速度，以一个字节一行为例，可以提前计算值0x00~0xFF的行列极性组成极性表，然后结合查表一次循环（按字节）即可计算出所有行列校验值，Linux内核中ECC计算便是使用此算法，[算法实现详细介绍见此文]( https://www.pianshen.com/article/2306657069/)。LevelX中的ECC算法使用的两个字节一行的算法，没有使用预计算的极性表（一个字节时极性表大小为256字节，两个字节的表则需要64KB，对存储占用太大）。
+
+无论是哪种实现本质是一样的，因此计算得到的ECC结果必然也一样，但是注意不同的算法的ECC值内部bit可能有不同的排列方式，因此比较不同算法结果的话需要统一排列方式。
+
+**硬件ECC计算**
+
+H7的FMC控制器包含ECC硬件计算模块，支持每256、512、1K、2K、4K、8K个字节计算ECC。开启此功能后，FMC自动对读写的数据流进行ECC计算，结果存储在相应寄存器中。因此实际本项目代码中不用实现上述ECC生成算法，而是控制ECC硬件模块完成ECC计算。
+
+本项目采用每256字节计算ECC，这样能应对最多的出错情况，另一方面ECC占用存储也最多。不过对于2K+64的页：2K/256*3字节（ECC有效22位）=24字节，还不到64字节的一半，因此存储空间完全没问题。由于每256字节计算ECC，对于2KB的页读写时需要分8次进行以获取每个256字节数据的ECC。
+
+硬件ECC使用步骤如下，每页需要重复以下步骤8次
+* 启动ECC
+* 读/写256字节数据
+* 阻塞读取ECC结果
+* 关闭ECC
+
+**ECC使用（纠错）**
+
+写数据时计算ECC并写入spare area，读数据时计算ECC并和从spare area读出的ECC进行比较，根据比较结果完成纠错。和ECC计算一样，纠错算法也有不同的实现方式，本质上都是上面链接文章最后提到的二分判决过程。本项目使用下述方式（要保证ECC内部bit排列是上图示例中的排列方式）：
+* 新旧ECC相等的话说明没有错误，否则二者进行异或，注意ECC有效位数
+* 异或结果的bit0~1、bit2~3...以此类推全是01b或10b的话说明有1个bit翻转，异或结果奇数bit组成的数即为翻转bit的总索引（全部数据按位排列的位索引）
+* 其他情况则表示无法纠正的错误
+
+## LevelX闪存磨损均衡
+最新版LevelX-6.2.1相比之前有很大的变化，但是相关文档并没有更新，本项目暂时仍旧使用旧版的LeveX-6.1.11
+
+### 移植关键步骤
+* 添加源码（[LevelX](https://github.com/azure-rtos/levelx/releases/tag/v6.1.11_rel)）
+    * 注意删除或者在Makefile中排除源文件中的2个文件系统示例文件`common/src/fx_*.c`
+* 拷贝`common/inc/lx_user_sample.h`重命名至`user/levelx/lx_user.h`，在此文件中对LevelX进行配置
+* Makefile中需要添加的宏定义
+    * `LX_INCLUDE_USER_DEFINE_FILE`：使能`lx_user.h`配置文件
+* 底层驱动
+    * NandFlash页读写及块擦除等操作，详见`user/levelx/lx_nand_driver.c`
+
+### 配置
+* 需要开启直接映射缓存选项（`lx_user.h`中定义`LX_NAND_FLASH_DIRECT_MAPPING_CACHE`宏）, 否则写未映射的sector会耗时数百ms(因为每次_lx_nand_flash_logical_sector_find会遍历全部block)
+* 开启了直接映射缓存则需要设置Cache大小为Flash总页数（`lx_user.h`中配置`LX_NAND_SECTOR_MAPPING_CACHE_SIZE`宏）
+* 以上配置会造成LX_NAND_FLASH实例很大（>1MB），因此需要定义到SDRAM中
+* 为了读写页数据之后不用再发送地址而直接能够继续访问ECC，NandFlash驱动中ECC值放在了spare area的起始位置，因此LevelX中坏块标志等其他信息放置在了spare area的字节32之后
+
 
 
 

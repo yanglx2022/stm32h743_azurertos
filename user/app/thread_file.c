@@ -6,6 +6,7 @@
  */
 
 #include "thread_file.h"
+#include "fx_nand_driver.h"
 #include "fx_sdcard_driver.h"
 #include "sdcard.h"
 
@@ -15,9 +16,9 @@ static UCHAR thread_stack[STACK_SIZE_DEFAULT];
 static TX_THREAD file_thread;
 
 // 文件系统
-static FX_MEDIA media;
-static uint8_t media_memory[64 * 1024] __attribute__((section(".noinit.AXI_RAM"), aligned(4)));
-__IO static uint8_t fs_mounted = 0;
+static FX_MEDIA media[FS_MEDIA_NUM];
+static uint8_t media_memory[FS_MEDIA_NUM][32 * 1024] __attribute__((section(".noinit.AXI_RAM"), aligned(4)));
+__IO static uint8_t fs_mounted[FS_MEDIA_NUM] = {0};
 
 
 /**
@@ -57,6 +58,19 @@ static void utf16_to_utf8(const uint16_t *utf16, uint32_t utf16_len, char *utf8)
  */
 void file_thread_entry(ULONG thread_input)
 {
+    // NandFlash挂载文件系统
+    if (fx_media_open(&media[FS_NANDFLASH], "NAND DISK", nand_driver, FX_NULL, 
+            media_memory[FS_NANDFLASH], sizeof(media_memory[FS_NANDFLASH])) == FX_SUCCESS)
+    {
+        fs_mounted[FS_NANDFLASH] = 1;
+        printf("NandFlash挂载文件系统成功\n");
+    }
+    else
+    {
+        printf("NandFlash挂载文件系统失败\n");
+    }
+
+    // SD卡插拔检测与挂载文件系统
     while (1)
     {
         // SD卡检测
@@ -66,10 +80,11 @@ void file_thread_entry(ULONG thread_input)
         {
             printf("SD卡已插入\n");
             // 文件系统挂载
-            UINT status = fx_media_open(&media, "SD DISK", sdcard_driver, FX_NULL, media_memory, sizeof(media_memory));
+            UINT status = fx_media_open(&media[FS_SDCARD], "SD DISK", sdcard_driver, FX_NULL, 
+                                        media_memory[FS_SDCARD], sizeof(media_memory[FS_SDCARD]));
             if (status == FX_SUCCESS)
             {
-                fs_mounted = 1;
+                fs_mounted[FS_SDCARD] = 1;
 
                 // 测试
                 printf("挂载文件系统成功\n");
@@ -83,12 +98,12 @@ void file_thread_entry(ULONG thread_input)
                 UINT hour;
                 UINT minute;
                 UINT second;
-                while (fx_directory_next_full_entry_find(&media, filename, &attributes, &size,
+                while (fx_directory_next_full_entry_find(&media[FS_SDCARD], filename, &attributes, &size,
                                                          &year, &month, &day, &hour, &minute, &second) == FX_SUCCESS)
                 {
                     // 路径或文件名中有中文时得到的为短文件名,使用fx_unicode_name_get获取长文件名再转为utf8以便显示
                     ULONG len;
-                    UINT ret = fx_unicode_name_get(&media, filename, (UCHAR *)filename, &len);
+                    UINT ret = fx_unicode_name_get(&media[FS_SDCARD], filename, (UCHAR *)filename, &len);
                     if (ret == FX_SUCCESS)
                     {
                         utf16_to_utf8((uint16_t*)filename, len, filename_utf8);
@@ -113,13 +128,13 @@ void file_thread_entry(ULONG thread_input)
         }
         else if (hr == HR_SD_REMOVAL)
         {
-            fs_mounted = 0;
+            fs_mounted[FS_SDCARD] = 0;
             printf("SD卡已拔出\n");
-            fx_media_close(&media);
+            fx_media_close(&media[FS_SDCARD]);
         }
-        if (fs_mounted)
+        if (fs_mounted[FS_SDCARD])
         {
-            fx_media_flush(&media);
+            fx_media_flush(&media[FS_SDCARD]);
         }
         tx_thread_sleep(MS_TO_TICKS(1000));
     }

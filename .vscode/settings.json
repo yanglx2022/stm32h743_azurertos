@@ -6,6 +6,9 @@
         "stm32h7xx_ll_rcc.h": "c",
         "stm32h7xx.h": "c",
         "stdio.h": "c",
-        "thread_file.h": "c"
+        "thread_file.h": "c",
+        "lx_nand_driver.h": "c",
+        "nandflash.h": "c",
+        "lx_api.h": "c"
     }
 }

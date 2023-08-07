@@ -54,6 +54,15 @@ C_INCLUDES +=  \
 -Idrivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc \
 -Iuser/filex \
 
+# LevelX
+C_SOURCES +=  \
+$(wildcard drivers/levelx-6.1.11_rel/common/src/lx_nand_*.c) \
+$(wildcard user/levelx/*.c)
+
+C_INCLUDES +=  \
+-Idrivers/levelx-6.1.11_rel/common/inc \
+-Iuser/levelx \
+
 # ASM源文件
 ASM_SOURCES =  \
 drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h743xx.s
@@ -73,6 +82,7 @@ C_DEFS =  \
 -DTX_EXECUTION_PROFILE_ENABLE \
 -DTX_CORTEX_M_EPK \
 -DFX_INCLUDE_USER_DEFINE_FILE \
+-DLX_INCLUDE_USER_DEFINE_FILE \
 
 # 汇编全局宏定义
 AS_DEFS = \

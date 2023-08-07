@@ -404,8 +404,13 @@ static uint32_t nand_wait_ready(uint32_t timeout_ns)
     return NAND_TIMEOUT_ERROR;
 }
 
-
-// ECC校验纠错
+/**
+ * @brief : ECC校验纠错
+ * @param  data           数据
+ * @param  ecc_value_calc 新ECC值
+ * @param  ecc_value_read 旧ECC值
+ * @return 
+ */
 static HRESULT nand_256byte_ecc_check(uint8_t* data, uint32_t ecc_value_calc, uint32_t ecc_value_read)
 {
     uint32_t bit_index = 0;
@@ -434,13 +439,5 @@ static HRESULT nand_256byte_ecc_check(uint8_t* data, uint32_t ecc_value_calc, ui
     data[bit_index / 8] ^= (uint8_t)(1 << (bit_index % 8));
     return HR_OK;
 }
-
-
-
-
-
-
-
-
 
 
