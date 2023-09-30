@@ -18,7 +18,12 @@
                 "${workspaceFolder}/drivers/filex-6.1.11_rel/ports/cortex_m7/gnu/inc",
                 "${workspaceFolder}/user/filex",
                 "${workspaceFolder}/drivers/levelx-6.1.11_rel/common/inc",
-                "${workspaceFolder}/user/levelx"
+                "${workspaceFolder}/user/levelx",
+                "${workspaceFolder}/drivers/usbx-6.2.1_rel/common/core/inc",
+                "${workspaceFolder}/drivers/usbx-6.2.1_rel/common/usbx_device_classes/inc",
+                "${workspaceFolder}/drivers/usbx-6.2.1_rel/ports/cortex_m7/gnu/inc",
+                "${workspaceFolder}/drivers/usbx_stm32/usbx_stm32_device_controllers",
+                "${workspaceFolder}/user/usbx"
             ],
             "defines": [
                 "__GNUC__",
@@ -29,7 +34,8 @@
                 "TX_EXECUTION_PROFILE_ENABLE",
                 "TX_CORTEX_M_EPK",
                 "FX_INCLUDE_USER_DEFINE_FILE",
-                "LX_INCLUDE_USER_DEFINE_FILE"
+                "LX_INCLUDE_USER_DEFINE_FILE",
+                "UX_INCLUDE_USER_DEFINE_FILE"
             ],
             "compilerPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe",
             "cStandard": "gnu99",

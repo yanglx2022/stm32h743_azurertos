@@ -14,6 +14,8 @@ STM32H743与AzureRTOS学习记录总结……
 
 [2023/08/07] ECC介绍、LevelX移植、FileX增加NandFlash
 
+[2023/09/30] 移植USBX（NandFlash模拟U盘）
+
 ## 硬件平台
 正点原子STM32H743核心板+自制底板，具体硬件资源如下表
 <table>
@@ -746,9 +748,19 @@ H7的FMC控制器包含ECC硬件计算模块，支持每256、512、1K、2K、4K
 * 以上配置会造成LX_NAND_FLASH实例很大（>1MB），因此需要定义到SDRAM中
 * 为了读写页数据之后不用再发送地址而直接能够继续访问ECC，NandFlash驱动中ECC值放在了spare area的起始位置，因此LevelX中坏块标志等其他信息放置在了spare area的字节32之后
 
-
-
-
-
+## USBX
+移植关键步骤（MSC设备, NandFlash模拟U盘）
+* 添加源码（[USBX](https://github.com/azure-rtos/usbx/releases)）
+    * `ports`只需要`cortex_m7/gnu`
+    * 其他所有
+* 添加源码（[usbx_stm32](https://github.com/STMicroelectronics/x-cube-azrtos-h7/tags)）
+    * `Middlewares\ST\usbx\common\usbx_stm32_device_controllers`（用于USB设备）
+    * `Middlewares\ST\usbx\common\usbx_stm32_host_controllers`（用于USB主机）
+* 拷贝`common/core/inc/ux_user_sample.h`重命名至`user/usbx/ux_user.h`，在此文件中对USBX进行配置
+* 拷贝`x-cube-azrtos-h7`中任一示例项目的`ux_stm32_config.h`至`user/usbx/ux_stm32_config.h`，在此文件中配置usbx_stm32
+* 实现USB设备初始化、MSC描述符、MSC驱动等内容，详见`user/usbx`中相关代码
+* Makefile修改
+    * 添加源代码及头文件列表，详见文件
+    * 添加宏定义`UX_INCLUDE_USER_DEFINE_FILE`：使能`ux_user.h`配置文件
 
 
