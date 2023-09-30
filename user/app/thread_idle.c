@@ -39,7 +39,7 @@ static int cpu_usage(void)
 }
 
 /**
- * @brief : 
+ * @brief : 空闲任务
  * @param  thread_input
  * @return 
  */
@@ -65,6 +65,6 @@ void idle_thread_entry(ULONG thread_input)
 void idle_thread_create(void)
 {
     tx_thread_create(&idle_thread, "idle_thread", idle_thread_entry, 0,
-                     thread_stack, STACK_SIZE_DEFAULT, IDLE_TASK_PRI, IDLE_TASK_PRI, TX_NO_TIME_SLICE, TX_AUTO_START);
+                     thread_stack, STACK_SIZE_DEFAULT, IDLE_THREAD_PRI, IDLE_THREAD_PRI, TX_NO_TIME_SLICE, TX_AUTO_START);
 }
 

@@ -1,5 +1,19 @@
 {
     "files.associations": {
-        "sdram.h": "c"
+        "sdram.h": "c",
+        "common.h": "c",
+        "fx_sdcard_driver.h": "c",
+        "stm32h7xx_ll_rcc.h": "c",
+        "stm32h7xx.h": "c",
+        "stdio.h": "c",
+        "thread_file.h": "c",
+        "lx_nand_driver.h": "c",
+        "nandflash.h": "c",
+        "lx_api.h": "c",
+        "ux_stm32_config.h": "c",
+        "usb_otg.h": "c",
+        "ux_descriptor.h": "c",
+        "ux_storage_driver.h": "c",
+        "ux_device_class_storage.h": "c"
     }
 }

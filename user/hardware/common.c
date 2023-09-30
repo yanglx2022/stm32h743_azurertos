@@ -9,7 +9,98 @@
 #include "sdram.h"
 #include "tx_thread.h"
 #include "tx_initialize.h"
+#include "sdcard.h"
+#include "nandflash.h"
 
+static void MPU_Cache_Config(void);
+static void SystemClock_Config(void);
+static void Delay_Init(void);
+static void USART1_Init(void);
+static void LED_Init(void);
+static void memory_init(void);
+
+
+/**
+ * @brief : 初始化(被__libc_init_array调用, 启动文件中先调用__libc_init_array再调用main)
+ * @param  
+ * @return 
+ */
+__attribute__((constructor)) void sys_init(void)
+{
+    // 中断分组
+    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); // 全抢占
+    // MPU与Cache
+    MPU_Cache_Config();
+    // 时钟
+    SystemClock_Config();
+    SystemCoreClockUpdate();
+    // 延时
+    Delay_Init();
+    // 串口
+    USART1_Init();
+    // LED
+    LED_Init();
+    // SDRAM初始化
+    SDRAM_Init();
+    // 自定义段变量初始化
+    memory_init();
+    // SD卡初始化
+    SDCard_Init();
+    // NAND Flash初始化
+    NAND_Init();
+}
+
+/**
+ * @brief : 自定义段变量初始化
+ * @param  
+ * @return 
+ */
+static void memory_init(void)
+{
+    // AXI_RAM数据初始化
+    // 从FLASH拷贝
+    extern uint32_t _init_axi_ram_start;
+    extern uint32_t _init_axi_ram_end;
+    extern uint32_t _init_axi_ram_lma;
+    uint32_t *ram   = &_init_axi_ram_start; // 注意_init_axi_ram_start只是ld文件中的符号, 不是普通变量, 要用&访问其值, 下同
+    uint32_t *end   = &_init_axi_ram_end;
+    uint32_t *flash = &_init_axi_ram_lma;
+    while(ram < end)
+    {
+        *ram++ = *flash++;
+    }
+    // 赋0值
+    extern uint32_t _noinit_axi_ram_start;
+    extern uint32_t _noinit_axi_ram_end;
+    ram = &_noinit_axi_ram_start;
+    end = &_noinit_axi_ram_end;
+    while(ram < end)
+    {
+        *ram++ = 0;
+    }
+
+    // SDRAM数据初始化
+    // 从FLASH拷贝
+    extern uint32_t _init_sdram_start;
+    extern uint32_t _init_sdram_end;
+    extern uint32_t _init_sdram_lma;
+    ram   = &_init_sdram_start;
+    end   = &_init_sdram_end;
+    flash = &_init_sdram_lma;
+    while(ram < end)
+    {
+        *ram++ = *flash++;
+    }
+    // 赋0值
+    extern uint32_t _noinit_sdram_start;
+    extern uint32_t _noinit_sdram_end;
+    ram = &_noinit_sdram_start;
+    end = &_noinit_sdram_end;
+    while(ram < end)
+    {
+        *ram++ = 0;
+    }
+}
 
 /**
  * @brief : 配置MPU与Cache
@@ -166,10 +257,10 @@ static void SystemClock_Config(void)
     // 设置外设时钟源
     LL_RCC_SetUSARTClockSource(LL_RCC_USART16_CLKSOURCE_PCLK2);
     LL_RCC_SetFMCClockSource(LL_RCC_FMC_CLKSOURCE_HCLK);
-    // LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_HSI48);
+    LL_RCC_SetSDMMCClockSource(LL_RCC_SDMMC_CLKSOURCE_PLL1Q);
+    LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_HSI48);
     // LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);
     // LL_RCC_SetQSPIClockSource(LL_RCC_QSPI_CLKSOURCE_HCLK);
-    // LL_RCC_SetSDMMCClockSource(LL_RCC_SDMMC_CLKSOURCE_PLL2R);
     // LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSOURCE_PLL2P);
 }
 
@@ -340,75 +431,6 @@ static void LED_Init(void)
     GPIO_InitStruct.Pin         = LL_GPIO_PIN_1;
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_1);     // 默认高电平LED不亮
-}
-
-/**
- * @brief : 初始化(被__libc_init_array调用, 启动文件中先调用__libc_init_array再调用main)
- * @param  
- * @return 
- */
-__attribute__((constructor)) void sys_init(void)
-{
-    // MCU初始化
-    // 中断分组
-    NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4); // 全抢占
-    // MPU与Cache
-    MPU_Cache_Config();
-    // 时钟
-    SystemClock_Config();
-    SystemCoreClockUpdate();
-    // 延时
-    Delay_Init();
-    // 串口
-    USART1_Init();
-    // LED
-    LED_Init();
-    // SDRAM初始化
-    SDRAM_Init();
-
-    // AXI_RAM数据初始化
-    // 从FLASH拷贝
-    extern uint32_t _init_axi_ram_start;
-    extern uint32_t _init_axi_ram_end;
-    extern uint32_t _init_axi_ram_lma;
-    uint32_t *ram   = &_init_axi_ram_start; // 注意_init_axi_ram_start只是ld文件中的符号, 不是普通变量, 要用&访问其值, 下同
-    uint32_t *end   = &_init_axi_ram_end;
-    uint32_t *flash = &_init_axi_ram_lma;
-    while(ram < end)
-    {
-        *ram++ = *flash++;
-    }
-    // 赋0值
-    extern uint32_t _noinit_axi_ram_start;
-    extern uint32_t _noinit_axi_ram_end;
-    ram = &_noinit_axi_ram_start;
-    end = &_noinit_axi_ram_end;
-    while(ram < end)
-    {
-        *ram++ = 0;
-    }
-
-    // SDRAM数据初始化
-    // 从FLASH拷贝
-    extern uint32_t _init_sdram_start;
-    extern uint32_t _init_sdram_end;
-    extern uint32_t _init_sdram_lma;
-    ram   = &_init_sdram_start;
-    end   = &_init_sdram_end;
-    flash = &_init_sdram_lma;
-    while(ram < end)
-    {
-        *ram++ = *flash++;
-    }
-    // 赋0值
-    extern uint32_t _noinit_sdram_start;
-    extern uint32_t _noinit_sdram_end;
-    ram = &_noinit_sdram_start;
-    end = &_noinit_sdram_end;
-    while(ram < end)
-    {
-        *ram++ = 0;
-    }
 }
 
 /**

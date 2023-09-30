@@ -16,6 +16,7 @@ extern "C" {
 
 void idle_thread_create(void);
 
+
 #ifdef __cplusplus
 }
 #endif
