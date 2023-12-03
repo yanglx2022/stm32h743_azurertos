@@ -7,6 +7,9 @@
 
 #include "thread_idle.h"
 #include "tx_execution_profile.h"
+#include "switch.h"
+#include "key.h"
+#include "remote.h"
 
 // 任务堆栈
 static UCHAR thread_stack[STACK_SIZE_DEFAULT];
@@ -50,10 +53,28 @@ void idle_thread_entry(ULONG thread_input)
         int usage = cpu_usage();
         if (usage >= 0)
         {
-            printf("CPU usage: %02d%%\n", usage);
+            // printf("CPU usage: %02d%%\n", usage);
         }
-        LED_TOGGLE();
-        tx_thread_sleep(MS_TO_TICKS(1000));
+        // LED_TOGGLE();
+        if (Key_Get_State(KEY_TOUCH).press)
+        {
+            LED_ON();
+        }
+        else
+        {
+            LED_OFF();
+        }
+        Switch_Off();
+        remote_key_t remote_key = Remote_Key_State();
+        if (remote_key.down)
+        {
+            printf("0x%02X down\n", remote_key.code);
+        }
+        if (remote_key.up)
+        {
+            printf("0x%02X up\n", remote_key.code);
+        }
+        tx_thread_sleep(MS_TO_TICKS(10));
     }
 }
 
@@ -67,4 +88,5 @@ void idle_thread_create(void)
     tx_thread_create(&idle_thread, "idle_thread", idle_thread_entry, 0,
                      thread_stack, STACK_SIZE_DEFAULT, IDLE_THREAD_PRI, IDLE_THREAD_PRI, TX_NO_TIME_SLICE, TX_AUTO_START);
 }
+
 

@@ -8,12 +8,12 @@
             "name": "Debug",
             "type": "cortex-debug",
             "request": "launch",
-            "armToolchainPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/",
+            "armToolchainPath": "C:/gcc-arm-none-eabi-10.3-2021.10-win32/bin/",
             "servertype": "openocd",
-            "serverpath": "C:/openocd-v0.11.0-i686-w64-mingw32/bin/openocd.exe",
+            "serverpath": "C:/openocd-v0.12.0-i686-w64-mingw32/bin/openocd.exe",
             "configFiles": [
-                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/interface/cmsis-dap.cfg",
-                "C:/openocd-v0.11.0-i686-w64-mingw32/share/openocd/scripts/target/stm32h7x.cfg"
+                "C:/openocd-v0.12.0-i686-w64-mingw32/share/openocd/scripts/interface/cmsis-dap.cfg",
+                "C:/openocd-v0.12.0-i686-w64-mingw32/share/openocd/scripts/target/stm32h7x.cfg"
             ],
             "openOCDLaunchCommands": [
                 "reset_config none"                 // SWD可能未连接RST线, 使用软件复位

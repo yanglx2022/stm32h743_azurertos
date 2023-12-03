@@ -11,6 +11,10 @@
 #include "tx_initialize.h"
 #include "sdcard.h"
 #include "nandflash.h"
+#include "buzzer.h"
+#include "key.h"
+#include "switch.h"
+#include "remote.h"
 
 static void MPU_Cache_Config(void);
 static void SystemClock_Config(void);
@@ -36,10 +40,18 @@ __attribute__((constructor)) void sys_init(void)
     SystemCoreClockUpdate();
     // 延时
     Delay_Init();
+    // 按键
+    Key_Init();
+    // 开机
+    Switch_On();
     // 串口
     USART1_Init();
     // LED
     LED_Init();
+    // Buzzer
+    Buzzer_Init();
+    // 红外遥控
+    Remote_Init();
     // SDRAM初始化
     SDRAM_Init();
     // 自定义段变量初始化
@@ -262,6 +274,43 @@ static void SystemClock_Config(void)
     // LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);
     // LL_RCC_SetQSPIClockSource(LL_RCC_QSPI_CLKSOURCE_HCLK);
     // LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSOURCE_PLL2P);
+}
+
+/**
+ * @brief : 获取定时器时钟周期
+ * @param  *TIMx 定时器
+ * @return 
+ */
+uint32_t Get_TIM_Clock_Freq(TIM_TypeDef *TIMx)
+{
+    // TIMPRE=0: D2PPREx为1分频或2分频则定时器内核时钟为HCLK,否则为2*PCLKx
+    // TIMPRE=1: D2PPREx为1分频或2分频或4分频则定时器内核时钟为HCLK,否则为4*PCLKx
+    uint32_t d2ppre, pclk;
+    LL_RCC_ClocksTypeDef rcc;
+    LL_RCC_GetSystemClocksFreq(&rcc);
+    if (TIMx == TIM1 || TIMx == TIM8 || TIMx == TIM15 || TIMx == TIM16 || TIMx == TIM17)    // APB2
+    {
+        d2ppre = LL_RCC_GetAPB2Prescaler();
+        if (d2ppre == LL_RCC_APB2_DIV_1 || d2ppre == LL_RCC_APB2_DIV_2)
+        {
+            return rcc.HCLK_Frequency;
+        }
+        pclk = rcc.PCLK2_Frequency;
+    }
+    else    // APB1
+    {
+        d2ppre = LL_RCC_GetAPB1Prescaler();
+        if (d2ppre == LL_RCC_APB1_DIV_1 || d2ppre == LL_RCC_APB1_DIV_2)
+        {
+            return rcc.HCLK_Frequency;
+        }
+        pclk = rcc.PCLK1_Frequency;
+    }
+    if (LL_RCC_GetTIMPrescaler() == LL_RCC_TIM_PRESCALER_TWICE)
+    {
+        return (pclk * 2);
+    }
+    return (pclk * 4);
 }
 
 /**

@@ -147,7 +147,7 @@ LDFLAGS += -lc -lrdimon -u _printf_float
 # 编译器
 ######################################
 # GCC编译器
-PREFIX = C:/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-
+PREFIX = C:/gcc-arm-none-eabi-10.3-2021.10-win32/bin/arm-none-eabi-
 CC = $(PREFIX)gcc
 AS = $(PREFIX)gcc -x assembler-with-cpp
 CP = $(PREFIX)objcopy

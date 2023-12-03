@@ -14,6 +14,10 @@
         "usb_otg.h": "c",
         "ux_descriptor.h": "c",
         "ux_storage_driver.h": "c",
-        "ux_device_class_storage.h": "c"
+        "ux_device_class_storage.h": "c",
+        "switch.h": "c",
+        "tx_api.h": "c",
+        "key_touch.h": "c",
+        "remote.h": "c"
     }
 }

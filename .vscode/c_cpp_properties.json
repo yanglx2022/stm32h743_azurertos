@@ -3,7 +3,7 @@
         {
             "name": "ARM-GCC",
             "includePath": [
-                "C:/gcc-arm-none-eabi-10.3-2021.10/arm-none-eabi/include",
+                "C:/gcc-arm-none-eabi-10.3-2021.10-win32/arm-none-eabi/include",
                 "${workspaceFolder}/user/app",
                 "${workspaceFolder}/user/hardware",
                 "${workspaceFolder}/drivers/CMSIS/Include",
@@ -37,7 +37,7 @@
                 "LX_INCLUDE_USER_DEFINE_FILE",
                 "UX_INCLUDE_USER_DEFINE_FILE"
             ],
-            "compilerPath": "C:/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-gcc.exe",
+            "compilerPath": "C:/gcc-arm-none-eabi-10.3-2021.10-win32/bin/arm-none-eabi-gcc.exe",
             "cStandard": "gnu99",
             "cppStandard": "gnu++11",
             "intelliSenseMode": "gcc-arm"

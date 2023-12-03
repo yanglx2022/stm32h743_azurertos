@@ -21,6 +21,7 @@ extern "C" {
 #include "stm32h7xx_ll_usart.h"
 #include "stm32h7xx_ll_gpio.h"
 #include "stm32h7xx_ll_fmc.h"
+#include "stm32h7xx_ll_tim.h"
 #include "stdio.h"
 #include "string.h"
 #include "memory.h"
@@ -38,18 +39,23 @@ extern const uint32_t VERSION;
 #define CPU_ID2                         (*(uint32_t*)0x1FF1E808)
 
 // 定时器资源分配
+#define BUZZER_TIM2                     TIM2
+#define REMOTE_TIM4                     TIM4
+#define KEY_TIM5                        TIM5
 
-
-#define STACK_SIZE_DEFAULT              2048
+#define STACK_SIZE_DEFAULT              (2048)
 
 // 中断优先级分配
 // 注意: SysTick优先级4(tx_initialize_low_level.S中设置)
-#define SDCARD_PRI                      5
-#define USB_PRI                         8
+#define BUZZER_PRI                      (5)
+#define KEY_PRI                         (6)
+#define REMOTE_PRI                      (7)
+#define SDCARD_PRI                      (9)
+#define USB_PRI                         (12)
 
 // 任务优先级分配
-#define FILE_THREAD_PRI                 11
-#define IDLE_THREAD_PRI                 31
+#define FILE_THREAD_PRI                 (11)
+#define IDLE_THREAD_PRI                 (31)
 
 // 硬件驱动返回值
 typedef enum
@@ -115,6 +121,7 @@ __STATIC_INLINE void delay_ns(uint32_t num)
 void delay_us(uint32_t num);
 void delay_ms(uint32_t num);
 uint32_t get_tick_ms(void);
+uint32_t Get_TIM_Clock_Freq(TIM_TypeDef *TIMx);
 
 #ifdef __cplusplus
 }
