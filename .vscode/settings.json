@@ -18,6 +18,11 @@
         "switch.h": "c",
         "tx_api.h": "c",
         "key_touch.h": "c",
-        "remote.h": "c"
+        "remote.h": "c",
+        "platform.h": "c",
+        "fsctypes.h": "c",
+        "core.h": "c",
+        "port.h": "c",
+        "pd_types.h": "c"
     }
 }

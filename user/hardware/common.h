@@ -22,6 +22,7 @@ extern "C" {
 #include "stm32h7xx_ll_gpio.h"
 #include "stm32h7xx_ll_fmc.h"
 #include "stm32h7xx_ll_tim.h"
+#include "stm32h7xx_ll_exti.h"
 #include "stdio.h"
 #include "string.h"
 #include "memory.h"
@@ -39,16 +40,18 @@ extern const uint32_t VERSION;
 #define CPU_ID2                         (*(uint32_t*)0x1FF1E808)
 
 // 定时器资源分配
-#define BUZZER_TIM2                     TIM2
+#define BUZZER_TIM3                     TIM3
 #define REMOTE_TIM4                     TIM4
 #define KEY_TIM5                        TIM5
+#define FUSB302_TIM2                    TIM2
 
 #define STACK_SIZE_DEFAULT              (2048)
 
 // 中断优先级分配
 // 注意: SysTick优先级4(tx_initialize_low_level.S中设置)
 #define BUZZER_PRI                      (5)
-#define KEY_PRI                         (6)
+#define KEY_PRI                         (5)
+#define FUSB302_PRI                     (6)
 #define REMOTE_PRI                      (7)
 #define SDCARD_PRI                      (9)
 #define USB_PRI                         (12)

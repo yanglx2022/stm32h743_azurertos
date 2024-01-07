@@ -60,6 +60,8 @@ __attribute__((constructor)) void sys_init(void)
     SDCard_Init();
     // NAND Flash初始化
     NAND_Init();
+    // FUSB302初始化
+    FUSB302_Init();
 }
 
 /**

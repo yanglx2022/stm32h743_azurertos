@@ -34,25 +34,25 @@ void Buzzer_Init(void)
     LL_GPIO_Init(BUZZER_GPIO, &GPIO_InitStruct);
     LL_GPIO_ResetOutputPin(BUZZER_GPIO, BUZZER_PIN);
 
-    // 定时器TIM2
-    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+    // 定时器TIM3
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
     uint16_t prescaler  = 10;           // 预分频
     uint16_t autoreload = (uint32_t)    // 计数值
-        ((float)Get_TIM_Clock_Freq(BUZZER_TIM2) / prescaler / BUZZER_FREQUENCY_HZ / 2 + 0.5f); // 定时周期
+        ((float)Get_TIM_Clock_Freq(BUZZER_TIM3) / prescaler / BUZZER_FREQUENCY_HZ / 2 + 0.5f); // 定时周期
     LL_TIM_InitTypeDef TIM_InitStruct = {0};
     TIM_InitStruct.Prescaler          = prescaler - 1;
     TIM_InitStruct.CounterMode        = LL_TIM_COUNTERMODE_UP;
     TIM_InitStruct.Autoreload         = autoreload - 1;
     TIM_InitStruct.ClockDivision      = LL_TIM_CLOCKDIVISION_DIV1;
-    LL_TIM_Init(BUZZER_TIM2, &TIM_InitStruct);
-    LL_TIM_SetClockSource(BUZZER_TIM2, LL_TIM_CLOCKSOURCE_INTERNAL);
-    LL_TIM_DisableMasterSlaveMode(BUZZER_TIM2);
+    LL_TIM_Init(BUZZER_TIM3, &TIM_InitStruct);
+    LL_TIM_SetClockSource(BUZZER_TIM3, LL_TIM_CLOCKSOURCE_INTERNAL);
+    LL_TIM_DisableMasterSlaveMode(BUZZER_TIM3);
 
     // 中断
-    LL_TIM_ClearFlag_UPDATE(BUZZER_TIM2);
-    LL_TIM_EnableIT_UPDATE(BUZZER_TIM2);
-    NVIC_SetPriority(TIM2_IRQn, BUZZER_PRI);
-    NVIC_EnableIRQ(TIM2_IRQn);
+    LL_TIM_ClearFlag_UPDATE(BUZZER_TIM3);
+    LL_TIM_EnableIT_UPDATE(BUZZER_TIM3);
+    NVIC_SetPriority(TIM3_IRQn, BUZZER_PRI);
+    NVIC_EnableIRQ(TIM3_IRQn);
 }
 
 /**
@@ -63,21 +63,21 @@ void Buzzer_Init(void)
 void Buzzer_Beep(uint16_t t_ms)
 {
     buzzer_cnt = (int)BUZZER_FREQUENCY_HZ * t_ms / 1000;
-    LL_TIM_EnableCounter(BUZZER_TIM2);
+    LL_TIM_EnableCounter(BUZZER_TIM3);
 }
 
 /**
- * @brief : TIM2中断 蜂鸣控制
+ * @brief : TIM3中断 蜂鸣控制
  * @param  
  * @return 
  */
-void TIM2_IRQHandler(void)
+void TIM3_IRQHandler(void)
 {
-    if (LL_TIM_IsActiveFlag_UPDATE(BUZZER_TIM2) != RESET)
+    if (LL_TIM_IsActiveFlag_UPDATE(BUZZER_TIM3) != RESET)
     {
         if (buzzer_cnt == 0)
         {
-            LL_TIM_DisableCounter(BUZZER_TIM2);
+            LL_TIM_DisableCounter(BUZZER_TIM3);
             LL_GPIO_ResetOutputPin(BUZZER_GPIO, BUZZER_PIN);
         }
         else
@@ -93,7 +93,7 @@ void TIM2_IRQHandler(void)
             }
         }
 
-        LL_TIM_ClearFlag_UPDATE(BUZZER_TIM2);
+        LL_TIM_ClearFlag_UPDATE(BUZZER_TIM3);
     }
 }
 

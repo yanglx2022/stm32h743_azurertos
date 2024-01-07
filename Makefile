@@ -79,6 +79,19 @@ C_INCLUDES +=  \
 -Idrivers/usbx_stm32/usbx_stm32_device_controllers \
 -Iuser/usbx \
 
+# FUSB302
+C_SOURCES +=  \
+$(wildcard drivers/fusb302_v4.1.2/core/*.c) \
+$(wildcard drivers/fusb302_v4.1.2/core/modules/*.c) \
+$(wildcard drivers/fusb302_v4.1.2/core/vdm/*.c) \
+$(wildcard user/fusb302/*.c)
+
+C_INCLUDES +=  \
+-Idrivers/fusb302_v4.1.2/core \
+-Idrivers/fusb302_v4.1.2/core/modules \
+-Idrivers/fusb302_v4.1.2/core/vdm \
+-Iuser/fusb302 \
+
 # ASM源文件
 ASM_SOURCES =  \
 drivers/CMSIS/Device/ST/STM32H7xx/Source/Templates/gcc/startup_stm32h743xx.s
@@ -99,7 +112,12 @@ C_DEFS =  \
 -DTX_CORTEX_M_EPK \
 -DFX_INCLUDE_USER_DEFINE_FILE \
 -DLX_INCLUDE_USER_DEFINE_FILE \
--DUX_INCLUDE_USER_DEFINE_FILE
+-DUX_INCLUDE_USER_DEFINE_FILE \
+-DFSC_HAVE_SRC \
+-DFSC_HAVE_SNK \
+-DFSC_HAVE_DRP \
+-DFSC_HAVE_ACCMODE
+
 
 # 汇编全局宏定义
 AS_DEFS = \

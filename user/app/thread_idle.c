@@ -10,6 +10,7 @@
 #include "switch.h"
 #include "key.h"
 #include "remote.h"
+#include "fusb302.h"
 
 // 任务堆栈
 static UCHAR thread_stack[STACK_SIZE_DEFAULT];
@@ -73,6 +74,14 @@ void idle_thread_entry(ULONG thread_input)
         if (remote_key.up)
         {
             printf("0x%02X up\n", remote_key.code);
+            if (remote_key.code == 0x16)
+            {
+                FUSB302_SrcCaps_Select(0);
+            }
+            if (remote_key.code == 0x0C)
+            {
+                FUSB302_SrcCaps_Select(1);
+            }
         }
         tx_thread_sleep(MS_TO_TICKS(10));
     }
