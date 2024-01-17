@@ -11,6 +11,7 @@
 #include "key.h"
 #include "remote.h"
 #include "fusb302.h"
+#include "lcd.h"
 
 // 任务堆栈
 static UCHAR thread_stack[STACK_SIZE_DEFAULT];
@@ -49,15 +50,27 @@ static int cpu_usage(void)
  */
 void idle_thread_entry(ULONG thread_input)
 {
+    LCD_Print("idle_thread_entry\n");
+    Key_Get_State(KEY_TOUCH);   // 首次触摸判断不准
+    uint32_t cnt = 0;
     while(1)
     {
+        cnt++;
         int usage = cpu_usage();
         if (usage >= 0)
         {
             // printf("CPU usage: %02d%%\n", usage);
         }
         // LED_TOGGLE();
-        if (Key_Get_State(KEY_TOUCH).press)
+
+        // 触摸按键测试
+        key_state_t key = Key_Get_State(KEY_TOUCH);
+        if (key.up)
+        {
+            static int touch_cnt = 0;
+            LCD_Print("touch key %d\n", touch_cnt++);
+        }
+        if (key.press)
         {
             LED_ON();
         }
@@ -65,22 +78,74 @@ void idle_thread_entry(ULONG thread_input)
         {
             LED_OFF();
         }
-        Switch_Off();
-        remote_key_t remote_key = Remote_Key_State();
-        if (remote_key.down)
+
+        // 滚动显示测试(音量键控制滚动)
+        key = Key_Get_State(KEY_VOL_N);
+        if (key.up)
         {
-            printf("0x%02X down\n", remote_key.code);
+            LCD_Scroll(1);
         }
+        else if (key.press && key.hold_ms > 300 && (cnt % 10) == 0)
+        {
+            LCD_Scroll(4);
+        }
+        else
+        {
+            key = Key_Get_State(KEY_VOL_P);
+            if (key.up)
+            {
+                LCD_Scroll(-1);
+            }
+            else if (key.press && key.hold_ms > 300 && (cnt % 10) == 0)
+            {
+                LCD_Scroll(-4);
+            }
+        }
+
+        // 关机检测
+        Switch_Off();
+
+        // 红外遥控("0"选择PD5V "1"选择PD9V "PLAY"切换显示方向 "-"下滚一行 "+"上滚一行)
+        remote_key_t remote_key = Remote_Key_State();
         if (remote_key.up)
         {
             printf("0x%02X up\n", remote_key.code);
-            if (remote_key.code == 0x16)
+            if (remote_key.code == REMOTE_CODE_0)
             {
                 FUSB302_SrcCaps_Select(0);
             }
-            if (remote_key.code == 0x0C)
+            else if (remote_key.code == REMOTE_CODE_1)
             {
                 FUSB302_SrcCaps_Select(1);
+            }
+            else if (remote_key.code == REMOTE_CODE_PLAY)
+            {
+                static uint32_t direction = 0;
+                direction = (direction + 1) % 4;
+                LCD_Direction_Set(direction);
+            }
+            else if (remote_key.code == REMOTE_CODE_N)
+            {
+                LCD_Scroll(1);
+            }
+            else if (remote_key.code == REMOTE_CODE_P)
+            {
+                LCD_Scroll(-1);
+            }
+            else
+            {
+                LCD_Print("ir key code 0x%02X\n", remote_key.code);
+            }
+        }
+        else if (remote_key.press && remote_key.hold_ms > 300 && (cnt % 10) == 0)
+        {
+            if (remote_key.code == REMOTE_CODE_N)
+            {
+                LCD_Scroll(4);
+            }
+            else if (remote_key.code == REMOTE_CODE_P)
+            {
+                LCD_Scroll(-4);
             }
         }
         tx_thread_sleep(MS_TO_TICKS(10));

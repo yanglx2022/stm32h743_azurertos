@@ -23,6 +23,7 @@ extern "C" {
 #include "stm32h7xx_ll_fmc.h"
 #include "stm32h7xx_ll_tim.h"
 #include "stm32h7xx_ll_exti.h"
+#include "stm32h7xx_ll_spi.h"
 #include "stdio.h"
 #include "string.h"
 #include "memory.h"

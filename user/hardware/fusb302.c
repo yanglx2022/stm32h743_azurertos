@@ -11,6 +11,7 @@
 #include "core.h"
 #include "PD_Types.h"
 #include "PDPolicy.h"
+#include "lcd.h"
 
 int source_capability_index = 0;
 
@@ -143,12 +144,15 @@ static void handle_core_event(FSC_U32 event, FSC_U8 portid, void *usr_ctx, void 
             if ((port.SinkRequest.FVRDO.ObjectPosition - 1) == i)
             {
                 printf("[*]");
+                LCD_Print("[*]");
             }
             else
             {
                 printf("[ ]");
+                LCD_Print("[ ]");
             }
             printf("%dV\t%.2fA\n", port.SrcCapsReceived[i].FPDOSupply.Voltage * 50 / 1000, port.SrcCapsReceived[i].FPDOSupply.MaxCurrent * 10.0 / 1000);
+            LCD_Print("%dV\t%.2fA\n", port.SrcCapsReceived[i].FPDOSupply.Voltage * 50 / 1000, port.SrcCapsReceived[i].FPDOSupply.MaxCurrent * 10.0 / 1000);
         }
     }
     if (event & PD_NO_CONTRACT)

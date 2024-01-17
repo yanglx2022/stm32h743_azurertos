@@ -7,6 +7,7 @@
 
 #include "switch.h"
 #include "key.h"
+#include "lcd.h"
 
 // 电源使能 PH2
 #define POWER_ENABLE_GPIO               GPIOH
@@ -55,6 +56,7 @@ void Switch_Off(void)
     key_state_t key_state_t = Key_Get_State(KEY_POWER);
     if (key_state_t.press && key_state_t.count && (key_state_t.hold_ms >= SWITCH_OFF_PRESS_MS))
     {
+        LCD_Enable(0);
         LL_GPIO_ResetOutputPin(POWER_ENABLE_GPIO, POWER_ENABLE_PIN);    // 电源关闭
         while(1);
     }

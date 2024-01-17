@@ -15,6 +15,8 @@
 #include "key.h"
 #include "switch.h"
 #include "remote.h"
+#include "fusb302.h"
+#include "lcd.h"
 
 static void MPU_Cache_Config(void);
 static void SystemClock_Config(void);
@@ -62,6 +64,8 @@ __attribute__((constructor)) void sys_init(void)
     NAND_Init();
     // FUSB302初始化
     FUSB302_Init();
+    // LCD初始化
+    LCD_Init();
 }
 
 /**
@@ -216,6 +220,7 @@ static void SystemClock_Config(void)
     LL_RCC_PLL1_SetR(2);        // 800MHz/2=400MHz
     // 使能PLL1
     LL_RCC_PLL1P_Enable();
+    LL_RCC_PLL1Q_Enable();
     LL_RCC_PLL1_Enable();
     while(LL_RCC_PLL1_IsReady() == 0);
 
@@ -226,11 +231,10 @@ static void SystemClock_Config(void)
     // 设置PLL2预分频系数M(取值1~63) 倍频系数N(取值4~512) 注意:N倍频后频率要在PLL2输出频率范围内
     LL_RCC_PLL2_SetM(25);
     LL_RCC_PLL2_SetN(504);      // 25MHz/25*504=504MHz
-    // 设置PLL1P PLL1Q PLL1R分频系数(取值2~128)
+    // 设置PLL2P PLL2Q PLL2R分频系数(取值2~128)
     LL_RCC_PLL2_SetP(7);        // 504MHz/7=72MHz
     LL_RCC_PLL2_SetQ(2);        // 504MHz/2=252MHz
     LL_RCC_PLL2_SetR(21);       // 504MHz/21=24MHz
-    LL_RCC_PLL2P_Enable();
     // 使能PLL2
     LL_RCC_PLL2P_Enable();
     LL_RCC_PLL2R_Enable();
@@ -244,7 +248,7 @@ static void SystemClock_Config(void)
     // 设置PLL3预分频系数M(取值1~63) 倍频系数N(取值4~512) 注意:N倍频后频率要在PLL3输出频率范围内
     LL_RCC_PLL3_SetM(32);
     LL_RCC_PLL3_SetN(128);      // 25MHz/32*128=100MHz
-    // 设置PLL1P PLL1Q PLL1R分频系数(取值2~128)
+    // 设置PLL3P PLL3Q PLL3R分频系数(取值2~128)
     LL_RCC_PLL3_SetP(2);        // 100MHz/2=50MHz
     LL_RCC_PLL3_SetQ(2);        // 100MHz/2=50MHz
     LL_RCC_PLL3_SetR(3);        // LTDC 2--50MHz时屏幕闪烁严重(刷新时闪现一些像素粒)  3--33.3MHz无像素粒
@@ -273,6 +277,7 @@ static void SystemClock_Config(void)
     LL_RCC_SetFMCClockSource(LL_RCC_FMC_CLKSOURCE_HCLK);
     LL_RCC_SetSDMMCClockSource(LL_RCC_SDMMC_CLKSOURCE_PLL1Q);
     LL_RCC_SetUSBClockSource(LL_RCC_USB_CLKSOURCE_HSI48);
+    LL_RCC_SetSPIClockSource(LL_RCC_SPI123_CLKSOURCE_PLL1Q);
     // LL_RCC_SetRTCClockSource(LL_RCC_RTC_CLKSOURCE_LSE);
     // LL_RCC_SetQSPIClockSource(LL_RCC_QSPI_CLKSOURCE_HCLK);
     // LL_RCC_SetADCClockSource(LL_RCC_ADC_CLKSOURCE_PLL2P);
