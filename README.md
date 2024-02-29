@@ -23,7 +23,7 @@ STM32H743与AzureRTOS学习记录总结……
 [2024/01/17] LCD（SPI接口）
 
 ## 硬件平台
-正点原子STM32H743核心板+自制底板（[原理图](docs\schematic\schematic.md)），具体硬件资源如下表
+正点原子STM32H743核心板+自制底板（[原理图](docs/schematic/schematic.md)），具体硬件资源如下表
 <table>
     <tr>
         <th></th>
